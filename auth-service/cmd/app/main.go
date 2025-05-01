@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gitverse.ru/volatex/backend/internal/app"
 	"log"
 
 	"gitverse.ru/volatex/backend/config"
@@ -12,4 +13,5 @@ func main() {
 		log.Fatalf("Config errors: %s", err)
 	}
 
+	app.Run(cfg)
 }

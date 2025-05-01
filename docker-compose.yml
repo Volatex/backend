@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db_auth:
+    container_name: db_auth
+    image: postgres:17-alpine
+    env_file:
+      - ./auth-service/.env
+    volumes:
+      - db_auth_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend_network
+
+  auth-service:
+    container_name: auth_service
+    platform: linux/amd64
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./auth-service/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db_auth
+    networks:
+      - backend_network
+
+networks:
+  backend_network:
+    driver: bridge
+    name: backend_network
+
+volumes:
+  db_auth_data:
+    name: db_auth_data
+
