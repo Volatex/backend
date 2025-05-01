@@ -1,5 +1,15 @@
 package main
 
+import (
+	"log"
+
+	"gitverse.ru/volatex/backend/config"
+)
+
 func main() {
-	// Конфигурация
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatalf("Config errors: %s", err)
+	}
+
 }
