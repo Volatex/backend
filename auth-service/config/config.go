@@ -35,7 +35,7 @@ type (
 	}
 
 	Swagger struct {
-		Enabled bool `env:"SWAGGER_ENABLED" envDefault:"false"`
+		Enabled bool `env:"SWAGGER_ENABLED" envDefault:"true"`
 	}
 )
 

@@ -3,15 +3,19 @@ package app
 
 import (
 	"fmt"
-	"gitverse.ru/volatex/backend/pkg/postgres"
 	"syscall"
 
-	//"fmt"
+	"gitverse.ru/volatex/backend/internal/controller/http"
+	"gitverse.ru/volatex/backend/internal/repo/persistent"
+	"gitverse.ru/volatex/backend/internal/usecase/user"
+	"gitverse.ru/volatex/backend/pkg/postgres"
+
+	"os"
+	"os/signal"
+
 	"gitverse.ru/volatex/backend/config"
 	"gitverse.ru/volatex/backend/pkg/httpserver"
 	"gitverse.ru/volatex/backend/pkg/logger"
-	"os"
-	"os/signal"
 )
 
 // Run инициализирует объекты приложения с помощью конструкторов и запускает его.
@@ -25,8 +29,14 @@ func Run(cfg *config.Config) {
 	}
 	defer pg.Close()
 
+	userRepo := persistent.New(pg)
+
+	userUseCase := user.New(userRepo)
+
 	// HTTP-сервер: настройка с указанным портом и режимом prefork.
 	httpServer := httpserver.New(httpserver.Port(cfg.HTTP.Port), httpserver.Prefork(cfg.HTTP.UsePreforkMode))
+
+	http.NewRouter(httpServer.App, cfg, userUseCase, l)
 
 	httpServer.Start()
 
