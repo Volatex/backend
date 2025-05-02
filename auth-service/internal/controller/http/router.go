@@ -4,12 +4,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"gitverse.ru/volatex/backend/config"
+	_ "gitverse.ru/volatex/backend/docs"
 	"gitverse.ru/volatex/backend/internal/controller/http/middleware"
 	v1 "gitverse.ru/volatex/backend/internal/controller/http/v1"
 	"gitverse.ru/volatex/backend/internal/usecase"
 	"gitverse.ru/volatex/backend/pkg/logger"
 )
 
+// NewRouter -.
 // Swagger spec:
 // @title       Authentication and Authorization Service
 // @description API for user authentication and authorization
@@ -19,6 +21,8 @@ import (
 func NewRouter(app *fiber.App, cfg *config.Config, u usecase.User, l logger.Interface) {
 	app.Use(middleware.Logger(l))
 	app.Use(middleware.Recovery(l))
+
+	app.Static("/swagger", "./docs")
 
 	if cfg.Swagger.Enabled {
 		app.Get("/swagger/*", swagger.HandlerDefault)
