@@ -19,7 +19,7 @@ func New(pg *postgres.Postgres) *UserRepo {
 func (r *UserRepo) Store(ctx context.Context, user entity.User) error {
 	sql, args, err := r.Builder.
 		Insert("users").
-		Columns("email, password").
+		Columns("email, password_hash").
 		Values(user.Email, user.Password).
 		Suffix("RETURNING id").
 		ToSql()
@@ -37,7 +37,7 @@ func (r *UserRepo) Store(ctx context.Context, user entity.User) error {
 
 func (r *UserRepo) GetByEmail(ctx context.Context, email string) (entity.User, error) {
 	sql, args, err := r.Builder.
-		Select("id, email, password").
+		Select("id, email, password_hash").
 		From("users").
 		Where("email = ?", email).
 		ToSql()

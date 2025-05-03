@@ -5,6 +5,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 const (
@@ -46,6 +47,13 @@ func New(opts ...Option) *Server {
 		JSONDecoder:  json.Unmarshal,
 		JSONEncoder:  json.Marshal,
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:8080, http://127.0.0.1:8080",
+		AllowMethods:     "GET,POST,OPTIONS,PUT,DELETE",
+		AllowHeaders:     "Accept,Content-Type,Authorization",
+		AllowCredentials: true,
+	}))
 
 	s.App = app
 

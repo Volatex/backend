@@ -1,13 +1,16 @@
 package v1
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"gitverse.ru/volatex/backend/internal/controller/http/v1/request"
 	"gitverse.ru/volatex/backend/internal/controller/http/v1/response"
 	"gitverse.ru/volatex/backend/internal/entity"
-	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/argon2"
 )
 
 // @Summary     Register
@@ -34,17 +37,32 @@ func (r *Auth) register(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, "invalid request body")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
-	if err != nil {
+	const (
+		memory      = 64 * 1024 // 64 MB
+		iterations  = 1
+		parallelism = 4
+		saltLength  = 16
+		keyLength   = 32
+	)
+
+	salt := make([]byte, saltLength)
+	if _, err := rand.Read(salt); err != nil {
 		r.l.Error(err, "http - v1 - register")
-		return errorResponse(ctx, http.StatusInternalServerError, "failed to process password")
+		return errorResponse(ctx, http.StatusInternalServerError, "failed to generate salt")
 	}
+
+	hash := argon2.IDKey([]byte(body.Password), salt, iterations, memory, parallelism, keyLength)
+
+	saltB64 := base64.RawStdEncoding.EncodeToString(salt)
+	hashB64 := base64.RawStdEncoding.EncodeToString(hash)
+
+	hashedPassword := fmt.Sprintf("argon2id$%d$%d$%d$%s$%s", memory, iterations, parallelism, saltB64, hashB64)
 
 	user, err := r.u.Register(
 		ctx.UserContext(),
 		entity.User{
 			Email:    body.Email,
-			Password: string(hashedPassword),
+			Password: hashedPassword,
 		},
 	)
 	if err != nil {
