@@ -36,5 +36,15 @@ func (c *SMTPClient) Send(to, subject, body string) error {
 	msg.WriteString("MIME-version: 1.0;\r\nContent-Type: text/plain; charset=\"UTF-8\";\r\n\r\n")
 	msg.WriteString(body)
 
-	return smtp.SendMail(addr, auth, c.from, []string{to}, []byte(msg.String()))
+	fmt.Println("Sending email to:", to)
+	fmt.Println("Message:", msg.String())
+
+	err := smtp.SendMail(addr, auth, c.from, []string{to}, []byte(msg.String()))
+	if err != nil {
+		fmt.Println("Error sending email:", err)
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	fmt.Println("Email sent successfully!")
+	return nil
 }

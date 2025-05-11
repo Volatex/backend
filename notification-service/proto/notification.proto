@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "pb/proto;proto";
+
+service NotificationService {
+  rpc SendVerificationCode(SendVerificationCodeRequest) returns (SendVerificationCodeResponse);
+}
+
+message SendVerificationCodeRequest {
+  string email = 1;
+}
+
+message SendVerificationCodeResponse {
+  string message = 1;
+}

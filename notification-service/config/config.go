@@ -12,6 +12,7 @@ type (
 		Log   Log
 		SMTP  SMTP
 		Redis Redis
+		GRPC  GRPC
 	}
 
 	App struct {
@@ -35,6 +36,10 @@ type (
 		Addr     string `env:"REDIS_ADDR,required"`
 		Password string `env:"REDIS_PASSWORD"`
 		DB       int    `env:"REDIS_DB" envDefault:"0"`
+	}
+
+	GRPC struct {
+		Port string `env:"GRPC_PORT,required"`
 	}
 )
 
