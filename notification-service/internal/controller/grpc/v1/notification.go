@@ -22,3 +22,11 @@ func (h *NotificationHandler) SendVerificationCode(ctx context.Context, req *pb.
 	}
 	return &pb.SendVerificationCodeResponse{Message: "Verification code sent"}, nil
 }
+
+func (h *NotificationHandler) VerifyCode(ctx context.Context, req *pb.VerifyCodeRequest) (*pb.VerifyCodeResponse, error) {
+	isValid, err := h.uc.VerifyCode(ctx, req.GetEmail(), req.GetCode())
+	if err != nil {
+		return nil, err
+	}
+	return &pb.VerifyCodeResponse{IsValid: isValid}, nil
+}

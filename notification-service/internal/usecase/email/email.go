@@ -50,3 +50,15 @@ func generateCode() string {
 	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
+
+func (uc *UseCase) VerifyCode(ctx context.Context, email, code string) (bool, error) {
+	storedCode, err := uc.codeRepo.Get(ctx, email)
+	if err != nil {
+		if err == repo.ErrCodeNotFound {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get code from repo: %w", err)
+	}
+
+	return storedCode == code, nil
+}

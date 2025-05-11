@@ -9,12 +9,14 @@ import (
 )
 
 type UseCase struct {
-	repo repo.UserRepo
+	repo     repo.UserRepo
+	notifier NotificationService
 }
 
-func New(r repo.UserRepo) *UseCase {
+func New(r repo.UserRepo, notifier NotificationService) *UseCase {
 	return &UseCase{
-		repo: r,
+		repo:     r,
+		notifier: notifier,
 	}
 }
 
@@ -22,6 +24,10 @@ func (uc *UseCase) Register(ctx context.Context, user entity.User) (entity.User,
 	err := uc.repo.Store(ctx, user)
 	if err != nil {
 		return entity.User{}, fmt.Errorf("UserUseCase - Register - uc.repo.Store: %w", err)
+	}
+
+	if err := uc.notifier.SendVerificationCode(ctx, user.Email); err != nil {
+		fmt.Printf("UserUseCase - Register - uc.notifier.SendVerificationCode: %v\n", err)
 	}
 
 	return user, nil

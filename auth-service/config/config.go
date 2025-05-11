@@ -13,6 +13,7 @@ type (
 		Log     Log
 		PG      PG
 		Swagger Swagger
+		GRPC    GRPC
 	}
 
 	App struct {
@@ -36,6 +37,10 @@ type (
 
 	Swagger struct {
 		Enabled bool `env:"SWAGGER_ENABLED" envDefault:"true"`
+	}
+
+	GRPC struct {
+		NotificationAddr string `env:"GRPC_NOTIFICATION_ADDR,required"`
 	}
 )
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"gitverse.ru/volatex/backend/internal/clients/notificationgrpc"
 	"syscall"
 
 	"gitverse.ru/volatex/backend/internal/controller/http"
@@ -30,7 +31,14 @@ func Run(cfg *config.Config) {
 
 	userRepo := persistent.New(pg)
 
-	userUseCase := user.New(userRepo)
+	// Инициализация gRPC клиента
+	notifClient, err := notificationgrpc.New(cfg.GRPC.NotificationAddr)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - notificationgrpc.New: %w", err))
+	}
+	//defer notifClient.Close()
+
+	userUseCase := user.New(userRepo, notifClient)
 
 	// HTTP-сервер: настройка с указанным портом и режимом prefork.
 	httpServer := httpserver.New(httpserver.Port(cfg.HTTP.Port), httpserver.Prefork(cfg.HTTP.UsePreforkMode))
