@@ -35,3 +35,13 @@ func (uc *UseCase) GetByEmail(ctx context.Context, email string) (entity.User, e
 
 	return user, nil
 }
+
+func (uc *UseCase) VerifyEmail(ctx context.Context, email string, code string) error {
+	// TODO: Сделать валидацию кода
+
+	err := uc.repo.SetEmailVerified(ctx, email)
+	if err != nil {
+		return fmt.Errorf("UserUseCase - VerifyEmail - uc.repo.MarkEmailVerified: %w", err)
+	}
+	return nil
+}

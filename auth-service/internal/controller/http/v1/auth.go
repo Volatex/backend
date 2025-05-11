@@ -75,3 +75,36 @@ func (r *Auth) register(ctx *fiber.Ctx) error {
 		Email: user.Email,
 	})
 }
+
+// @Summary     Verify email
+// @Description Confirm user's email with a verification code
+// @ID          verify-email
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       request body request.VerifyEmail true "Email and verification code"
+// @Success     200
+// @Failure     400 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /auth/verify-email [post]
+func (r *Auth) verifyEmail(ctx *fiber.Ctx) error {
+	var body request.VerifyEmail
+
+	if err := ctx.BodyParser(&body); err != nil {
+		r.l.Error(err, "http - v1 - verifyEmail")
+		return errorResponse(ctx, http.StatusBadRequest, "invalid request body")
+	}
+
+	if err := r.v.Struct(body); err != nil {
+		r.l.Error(err, "http - v1 - verifyEmail")
+		return errorResponse(ctx, http.StatusBadRequest, "validation failed")
+	}
+
+	err := r.u.VerifyEmail(ctx.UserContext(), body.Email, body.Code)
+	if err != nil {
+		r.l.Error(err, "http - v1 - verifyEmail")
+		return errorResponse(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	return ctx.SendStatus(http.StatusOK)
+}

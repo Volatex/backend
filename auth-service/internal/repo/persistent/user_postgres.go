@@ -53,3 +53,21 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (entity.User, e
 
 	return user, nil
 }
+
+func (r *UserRepo) SetEmailVerified(ctx context.Context, email string) error {
+	sql, args, err := r.Builder.
+		Update("users").
+		Set("is_email_verified", true).
+		Where("email = ?", email).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("UserRepo - SetEmailVerified - r.Builder: %w", err)
+	}
+
+	_, err = r.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("UserRepo - SetEmailVerified - r.Pool.Exec: %w", err)
+	}
+
+	return nil
+}

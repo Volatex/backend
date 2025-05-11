@@ -12,5 +12,6 @@ type (
 	UserRepo interface {
 		Store(ctx context.Context, user entity.User) error
 		GetByEmail(ctx context.Context, email string) (entity.User, error)
+		SetEmailVerified(ctx context.Context, email string) error
 	}
 )

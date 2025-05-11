@@ -13,6 +13,16 @@ definitions:
     - email
     - password
     type: object
+  request.VerifyEmail:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    required:
+    - code
+    - email
+    type: object
   response.Error:
     properties:
       error:
@@ -64,6 +74,35 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Register
+      tags:
+      - auth
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Confirm user's email with a verification code
+      operationId: verify-email
+      parameters:
+      - description: Email and verification code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Verify email
       tags:
       - auth
 swagger: "2.0"
