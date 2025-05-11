@@ -43,11 +43,17 @@ func (uc *UseCase) GetByEmail(ctx context.Context, email string) (entity.User, e
 }
 
 func (uc *UseCase) VerifyEmail(ctx context.Context, email string, code string) error {
-	// TODO: Сделать валидацию кода
-
-	err := uc.repo.SetEmailVerified(ctx, email)
+	valid, err := uc.notifier.VerifyCode(ctx, email, code)
 	if err != nil {
-		return fmt.Errorf("UserUseCase - VerifyEmail - uc.repo.MarkEmailVerified: %w", err)
+		return fmt.Errorf("UserUseCase - VerifyEmail - notifier.VerifyCode: %w", err)
+	}
+	if !valid {
+		return fmt.Errorf("invalid verification code")
+	}
+
+	err = uc.repo.SetEmailVerified(ctx, email)
+	if err != nil {
+		return fmt.Errorf("UserUseCase - VerifyEmail - uc.repo.SetEmailVerified: %w", err)
 	}
 	return nil
 }

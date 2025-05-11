@@ -14,6 +14,6 @@ func NewAuthRoutes(apiV1Group fiber.Router, u usecase.User, l logger.Interface) 
 
 	{
 		authGroup.Post("/register", r.register)
-		authGroup.Post("verify-email", r.verifyEmail)
+		authGroup.Post("/verify-email", r.verifyEmail)
 	}
 }
