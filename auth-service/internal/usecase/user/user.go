@@ -33,7 +33,7 @@ func New(r repo.UserRepo, notifier NotificationService, jwtSecret string) *UseCa
 }
 
 func (uc *UseCase) Register(ctx context.Context, user entity.User) (entity.User, error) {
-	err := uc.repo.Store(ctx, user)
+	err := uc.repo.Store(ctx, &user)
 	if err != nil {
 		return entity.User{}, fmt.Errorf("UserUseCase - Register - uc.repo.Store: %w", err)
 	}
@@ -82,7 +82,7 @@ func (uc *UseCase) SignIn(ctx context.Context, email, password string) (string, 
 
 	// Генерация JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.Id,
+		"user_id": user.Id.String(),
 		"email":   user.Email,
 		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	})

@@ -16,7 +16,7 @@ func New(pg *postgres.Postgres) *UserRepo {
 	return &UserRepo{pg}
 }
 
-func (r *UserRepo) Store(ctx context.Context, user entity.User) error {
+func (r *UserRepo) Store(ctx context.Context, user *entity.User) error {
 	sql, args, err := r.Builder.
 		Insert("users").
 		Columns("email, password_hash").

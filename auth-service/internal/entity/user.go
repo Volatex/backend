@@ -1,8 +1,10 @@
 package entity
 
+import "github.com/google/uuid"
+
 type User struct {
-	Id              int64  `json:"id"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	IsEmailVerified bool   `json:"is_email_verified"`
+	Id              uuid.UUID `json:"id"`
+	Email           string    `json:"email"`
+	Password        string    `json:"password"`
+	IsEmailVerified bool      `json:"is_email_verified"`
 }
