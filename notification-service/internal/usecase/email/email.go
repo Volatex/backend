@@ -23,7 +23,7 @@ func New(emailSender emailpkg.SMTPClient, codeRepo repo.VerificationCodeRepo) *U
 	}
 }
 
-func (uc *UseCase) SendVerificationCode(ctx context.Context, email string) error {
+func (uc *UseCase) SendVerificationCode(ctx context.Context, email string) error { // TODO: Реализовать вёрстку письма
 	code := generateCode()
 	fmt.Println("Generated code:", code)
 
