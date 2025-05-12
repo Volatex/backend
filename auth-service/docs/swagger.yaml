@@ -13,6 +13,16 @@ definitions:
     - email
     - password
     type: object
+  request.SignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   request.VerifyEmail:
     properties:
       code:
@@ -27,6 +37,12 @@ definitions:
     properties:
       error:
         example: message
+        type: string
+    type: object
+  response.Token:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1...
         type: string
     type: object
   response.User:
@@ -74,6 +90,41 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Register
+      tags:
+      - auth
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Login and get JWT
+      operationId: sign-in
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Token'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: SignIn
       tags:
       - auth
   /auth/verify-email:

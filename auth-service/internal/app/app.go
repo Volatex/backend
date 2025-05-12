@@ -38,7 +38,7 @@ func Run(cfg *config.Config) {
 	}
 	//defer notifClient.Close()
 
-	userUseCase := user.New(userRepo, notifClient)
+	userUseCase := user.New(userRepo, notifClient, cfg.JWT.Secret)
 
 	// HTTP-сервер: настройка с указанным портом и режимом prefork.
 	httpServer := httpserver.New(httpserver.Port(cfg.HTTP.Port), httpserver.Prefork(cfg.HTTP.UsePreforkMode))

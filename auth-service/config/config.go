@@ -14,6 +14,7 @@ type (
 		PG      PG
 		Swagger Swagger
 		GRPC    GRPC
+		JWT     JWT
 	}
 
 	App struct {
@@ -41,6 +42,11 @@ type (
 
 	GRPC struct {
 		NotificationAddr string `env:"GRPC_NOTIFICATION_ADDR,required"`
+	}
+	JWT struct {
+		Secret     string `env:"JWT_SECRET,required"`
+		TTL        string `env:"JWT_TTL,required"`
+		RefreshTTL string `env:"REFRESH_TTL,required"`
 	}
 )
 

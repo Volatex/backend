@@ -108,3 +108,42 @@ func (r *Auth) verifyEmail(ctx *fiber.Ctx) error {
 
 	return ctx.SendStatus(http.StatusOK)
 }
+
+// @Summary     SignIn
+// @Description Login and get JWT
+// @ID          sign-in
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       request body request.SignIn true "User credentials"
+// @Success     200 {object} response.Token
+// @Failure     400 {object} response.Error
+// @Failure     401 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /auth/sign-in [post]
+func (r *Auth) signIn(ctx *fiber.Ctx) error {
+	var body request.SignIn
+
+	if err := ctx.BodyParser(&body); err != nil {
+		r.l.Error(err, "http - v1 - signIn")
+		return errorResponse(ctx, http.StatusBadRequest, "invalid request body")
+	}
+
+	if err := r.v.Struct(body); err != nil {
+		r.l.Error(err, "http - v1 - signIn")
+		return errorResponse(ctx, http.StatusBadRequest, "validation failed")
+	}
+
+	token, err := r.u.SignIn(ctx.UserContext(), body.Email, body.Password)
+	if err != nil {
+		r.l.Error(err, "http - v1 - signIn")
+
+		if err.Error() == "invalid email or password" {
+			return errorResponse(ctx, http.StatusUnauthorized, err.Error())
+		}
+
+		return errorResponse(ctx, http.StatusInternalServerError, "sign in failed")
+	}
+
+	return ctx.JSON(response.Token{Token: token})
+}

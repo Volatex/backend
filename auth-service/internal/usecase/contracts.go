@@ -13,5 +13,6 @@ type (
 		Register(ctx context.Context, user entity.User) (entity.User, error)
 		GetByEmail(ctx context.Context, email string) (entity.User, error)
 		VerifyEmail(ctx context.Context, email, code string) error
+		SignIn(ctx context.Context, email, password string) (string, error)
 	}
 )
