@@ -1,0 +1,72 @@
+basePath: /v1
+definitions:
+  request.SaveStrategy:
+    properties:
+      buy_price:
+        type: number
+      buy_quantity:
+        type: integer
+      figi:
+        type: string
+      sell_price:
+        type: number
+      sell_quantity:
+        type: integer
+      tinkoff_token:
+        type: string
+    required:
+    - buy_price
+    - buy_quantity
+    - figi
+    - sell_price
+    - sell_quantity
+    - tinkoff_token
+    type: object
+  response.Error:
+    properties:
+      error:
+        example: message
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API for managing trading strategies
+  title: Market Service
+  version: "1.0"
+paths:
+  /strategy/:
+    post:
+      consumes:
+      - application/json
+      description: Save user's trading strategy
+      operationId: save-strategy
+      parameters:
+      - description: Strategy details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SaveStrategy'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Save strategy
+      tags:
+      - strategy
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

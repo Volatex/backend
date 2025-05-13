@@ -1,0 +1,106 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for managing trading strategies",
+        "title": "Market Service",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/v1",
+    "paths": {
+        "/strategy/": {
+            "post": {
+                "description": "Save user's trading strategy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "strategy"
+                ],
+                "summary": "Save strategy",
+                "operationId": "save-strategy",
+                "parameters": [
+                    {
+                        "description": "Strategy details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SaveStrategy"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "request.SaveStrategy": {
+            "type": "object",
+            "required": [
+                "buy_price",
+                "buy_quantity",
+                "figi",
+                "sell_price",
+                "sell_quantity",
+                "tinkoff_token"
+            ],
+            "properties": {
+                "buy_price": {
+                    "type": "number"
+                },
+                "buy_quantity": {
+                    "type": "integer"
+                },
+                "figi": {
+                    "type": "string"
+                },
+                "sell_price": {
+                    "type": "number"
+                },
+                "sell_quantity": {
+                    "type": "integer"
+                },
+                "tinkoff_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "message"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

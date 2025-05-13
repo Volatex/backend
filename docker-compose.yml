@@ -13,6 +13,18 @@ services:
     networks:
       - backend_network
 
+  db_market:
+    container_name: db_market
+    image: postgres:17-alpine
+    env_file:
+      - ./market-service/.env
+    volumes:
+      - db_market_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - backend_network
+
   auth-service:
     container_name: auth_service
     platform: linux/amd64
@@ -44,6 +56,22 @@ services:
     networks:
       - backend_network
 
+  market-service:
+    container_name: market_service
+    platform: linux/amd64
+    build:
+      context: ./market-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./market-service/.env
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db_market
+      - auth-service
+    networks:
+      - backend_network
+
   redis:
     container_name: redis
     image: redis:alpine
@@ -60,4 +88,6 @@ networks:
 volumes:
   db_auth_data:
     name: db_auth_data
+  db_market_data:
+    name: db_market_data
 
