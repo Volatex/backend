@@ -8,5 +8,6 @@ import (
 type (
 	Market interface {
 		Create(ctx context.Context, s *entity.Strategy) error
+		SaveUserToken(ctx context.Context, token *entity.UserToken) error
 	}
 )

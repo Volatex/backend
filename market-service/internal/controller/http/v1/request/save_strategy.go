@@ -6,5 +6,4 @@ type SaveStrategy struct {
 	BuyQuantity  int     `json:"buy_quantity" validate:"required"`
 	SellPrice    float64 `json:"sell_price" validate:"required"`
 	SellQuantity int     `json:"sell_quantity" validate:"required"`
-	TinkoffToken string  `json:"tinkoff_token" validate:"required"`
 }

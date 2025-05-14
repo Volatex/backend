@@ -8,5 +8,6 @@ import (
 type (
 	StrategyRepo interface {
 		Store(ctx context.Context, s *entity.Strategy) error
+		StoreUserToken(ctx context.Context, t *entity.UserToken) error
 	}
 )

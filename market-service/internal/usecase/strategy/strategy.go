@@ -17,3 +17,7 @@ func New(repo repo.StrategyRepo) *UseCase {
 func (uc *UseCase) Create(ctx context.Context, s *entity.Strategy) error {
 	return uc.repo.Store(ctx, s)
 }
+
+func (uc *UseCase) SaveUserToken(ctx context.Context, token *entity.UserToken) error {
+	return uc.repo.StoreUserToken(ctx, token)
+}

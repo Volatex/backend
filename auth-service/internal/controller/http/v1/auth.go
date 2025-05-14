@@ -106,7 +106,9 @@ func (r *Auth) verifyEmail(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.SendStatus(http.StatusOK)
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "success",
+	})
 }
 
 // @Summary     SignIn

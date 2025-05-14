@@ -15,8 +15,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/strategy/": {
+        "/strategy/add": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Save user's trading strategy",
                 "consumes": [
                     "application/json"
@@ -50,6 +55,67 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.Error"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/strategy/add_token": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Save user's token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "strategy"
+                ],
+                "summary": "Save user's token",
+                "operationId": "save-user-token",
+                "parameters": [
+                    {
+                        "description": "Strategy details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SaveUserToken"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -68,8 +134,7 @@ const docTemplate = `{
                 "buy_quantity",
                 "figi",
                 "sell_price",
-                "sell_quantity",
-                "tinkoff_token"
+                "sell_quantity"
             ],
             "properties": {
                 "buy_price": {
@@ -86,7 +151,15 @@ const docTemplate = `{
                 },
                 "sell_quantity": {
                     "type": "integer"
-                },
+                }
+            }
+        },
+        "request.SaveUserToken": {
+            "type": "object",
+            "required": [
+                "tinkoff_token"
+            ],
+            "properties": {
                 "tinkoff_token": {
                     "type": "string"
                 }

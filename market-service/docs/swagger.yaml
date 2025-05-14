@@ -12,14 +12,18 @@ definitions:
         type: number
       sell_quantity:
         type: integer
-      tinkoff_token:
-        type: string
     required:
     - buy_price
     - buy_quantity
     - figi
     - sell_price
     - sell_quantity
+    type: object
+  request.SaveUserToken:
+    properties:
+      tinkoff_token:
+        type: string
+    required:
     - tinkoff_token
     type: object
   response.Error:
@@ -35,7 +39,7 @@ info:
   title: Market Service
   version: "1.0"
 paths:
-  /strategy/:
+  /strategy/add:
     post:
       consumes:
       - application/json
@@ -57,11 +61,52 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
       summary: Save strategy
+      tags:
+      - strategy
+  /strategy/add_token:
+    post:
+      consumes:
+      - application/json
+      description: Save user's token
+      operationId: save-user-token
+      parameters:
+      - description: Strategy details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SaveUserToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Save user's token
       tags:
       - strategy
 securityDefinitions:

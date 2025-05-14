@@ -32,7 +32,7 @@ func NewRouter(app *fiber.App, cfg *config.Config, market usecase.Market, l logg
 		app.Get("/swagger/*", swagger.HandlerDefault)
 	}
 
-	apiV1Group := app.Group("/v1")
+	apiV1Group := app.Group("/v1", middleware.JWTMiddleware(cfg.JWT.Secret))
 	{
 		v1.NewMarketRoutes(apiV1Group, market, l)
 	}

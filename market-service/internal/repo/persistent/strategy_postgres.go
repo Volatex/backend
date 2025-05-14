@@ -3,7 +3,6 @@ package persistent
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
 	"gitverse.ru/volatex/backend/market-service/pkg/postgres"
 )
@@ -17,20 +16,39 @@ func NewStrategyRepo(pg *postgres.Postgres) *StrategyRepo {
 }
 
 func (r *StrategyRepo) Store(ctx context.Context, s *entity.Strategy) error {
-	if s.ID == uuid.Nil {
-		s.ID = uuid.New()
-	}
 	sql, args, err := r.Builder.
 		Insert("user_strategies").
-		Columns("id", "user_id", "figi", "buy_price", "buy_quantity", "sell_price", "sell_quantity", "tinkoff_token").
-		Values(s.ID, s.UserID, s.Figi, s.BuyPrice, s.BuyQuantity, s.SellPrice, s.SellQuantity, s.TinkoffToken).
+		Columns("user_id", "figi", "buy_price", "buy_quantity", "sell_price", "sell_quantity").
+		Values(s.UserID, s.Figi, s.BuyPrice, s.BuyQuantity, s.SellPrice, s.SellQuantity).
+		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("StrategyRepo - Store - Build: %w", err)
 	}
+
+	row := r.Pool.QueryRow(ctx, sql, args...)
+	if err := row.Scan(&s.ID); err != nil {
+		return fmt.Errorf("StrategyRepo - Store - Scan: %w", err)
+	}
+
+	return nil
+}
+
+func (r *StrategyRepo) StoreUserToken(ctx context.Context, t *entity.UserToken) error {
+	sql, args, err := r.Builder.
+		Insert("user_tokens").
+		Columns("user_id", "tinkoff_token").
+		Values(t.UserID, t.TinkoffToken).
+		Suffix("ON CONFLICT (user_id) DO UPDATE SET tinkoff_token = EXCLUDED.tinkoff_token, updated_at = NOW()").
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("StrategyRepo - StoreUserToken - Build: %w", err)
+	}
+
 	_, err = r.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("StrategyRepo - Store - Exec: %w", err)
+		return fmt.Errorf("StrategyRepo - StoreUserToken - Exec: %w", err)
 	}
+
 	return nil
 }

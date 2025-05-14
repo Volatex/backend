@@ -1,14 +1,18 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Strategy struct {
-	ID           uuid.UUID
+	ID           int
 	UserID       uuid.UUID
 	Figi         string
 	BuyPrice     float64
 	BuyQuantity  int
 	SellPrice    float64
 	SellQuantity int
-	TinkoffToken string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
