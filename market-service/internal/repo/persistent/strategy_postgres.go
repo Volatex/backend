@@ -3,6 +3,7 @@ package persistent
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
 	"gitverse.ru/volatex/backend/market-service/pkg/postgres"
 )
@@ -51,4 +52,35 @@ func (r *StrategyRepo) StoreUserToken(ctx context.Context, t *entity.UserToken) 
 	}
 
 	return nil
+}
+
+func (r *StrategyRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Strategy, error) {
+	sql, args, err := r.Builder.
+		Select("id", "user_id", "figi", "buy_price", "buy_quantity", "sell_price", "sell_quantity", "created_at", "updated_at").
+		From("user_strategies").
+		Where("user_id = ?", userID).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetByUserID - Build: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetByUserID - Query: %w", err)
+	}
+	defer rows.Close()
+
+	var strategies []*entity.Strategy
+	for rows.Next() {
+		var s entity.Strategy
+		err := rows.Scan(
+			&s.ID, &s.UserID, &s.Figi, &s.BuyPrice, &s.BuyQuantity,
+			&s.SellPrice, &s.SellQuantity, &s.CreatedAt, &s.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("StrategyRepo - GetByUserID - Scan: %w", err)
+		}
+		strategies = append(strategies, &s)
+	}
+	return strategies, nil
 }

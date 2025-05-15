@@ -124,9 +124,82 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/strategy/get_strategies": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all strategies for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "strategy"
+                ],
+                "summary": "Get user strategies",
+                "operationId": "get-user-strategies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Strategy"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "entity.Strategy": {
+            "type": "object",
+            "properties": {
+                "buyPrice": {
+                    "type": "number"
+                },
+                "buyQuantity": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "figi": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sellPrice": {
+                    "type": "number"
+                },
+                "sellQuantity": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
         "request.SaveStrategy": {
             "type": "object",
             "required": [

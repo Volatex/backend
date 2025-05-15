@@ -114,3 +114,33 @@ func (r *Market) saveUserToken(ctx *fiber.Ctx) error {
 		"message": "success",
 	})
 }
+
+// @Summary     Get user strategies
+// @Description Get all strategies for the authenticated user
+// @ID          get-user-strategies
+// @Tags        strategy
+// @Produce     json
+// @Success     200 {array} entity.Strategy
+// @Failure     401 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /strategy/get_strategies [get]
+// @Security ApiKeyAuth
+func (r *Market) getUserStrategies(ctx *fiber.Ctx) error {
+	userIDRaw := ctx.Locals("user_id")
+	userIDStr, ok := userIDRaw.(string)
+	if !ok || userIDStr == "" {
+		return errorResponse(ctx, http.StatusUnauthorized, "unauthorized")
+	}
+
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, "invalid user ID")
+	}
+
+	strategies, err := r.u.GetUserStrategies(ctx.UserContext(), userUUID)
+	if err != nil {
+		return errorResponse(ctx, http.StatusInternalServerError, "failed to fetch strategies")
+	}
+
+	return ctx.Status(http.StatusOK).JSON(strategies)
+}

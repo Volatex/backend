@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
 	"gitverse.ru/volatex/backend/market-service/internal/repo"
 )
@@ -20,4 +21,8 @@ func (uc *UseCase) Create(ctx context.Context, s *entity.Strategy) error {
 
 func (uc *UseCase) SaveUserToken(ctx context.Context, token *entity.UserToken) error {
 	return uc.repo.StoreUserToken(ctx, token)
+}
+
+func (uc *UseCase) GetUserStrategies(ctx context.Context, userID uuid.UUID) ([]*entity.Strategy, error) {
+	return uc.repo.GetByUserID(ctx, userID)
 }
