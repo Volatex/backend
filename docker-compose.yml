@@ -72,6 +72,17 @@ services:
     networks:
       - backend_network
 
+  math-service:
+    container_name: math_service
+    platform: linux/amd64
+    build:
+      context: ./math-service
+      dockerfile: Dockerfile
+    ports:
+      - "50055:50055"
+    networks:
+      - backend_network
+
   redis:
     container_name: redis
     image: redis:alpine
@@ -89,5 +100,4 @@ volumes:
   db_auth_data:
     name: db_auth_data
   db_market_data:
-    name: db_market_data
-
+    name: db_market_data 
