@@ -3,6 +3,7 @@ package persistent
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
 	"gitverse.ru/volatex/backend/market-service/pkg/postgres"
@@ -83,4 +84,64 @@ func (r *StrategyRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*en
 		strategies = append(strategies, &s)
 	}
 	return strategies, nil
+}
+
+func (r *StrategyRepo) GetAll(ctx context.Context) ([]*entity.Strategy, error) {
+	sql, args, err := r.Builder.
+		Select("id", "user_id", "figi", "buy_price", "buy_quantity", "sell_price", "sell_quantity", "created_at", "updated_at").
+		From("user_strategies").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetAll - Build: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetAll - Query: %w", err)
+	}
+	defer rows.Close()
+
+	var strategies []*entity.Strategy
+	for rows.Next() {
+		var s entity.Strategy
+		err := rows.Scan(
+			&s.ID, &s.UserID, &s.Figi, &s.BuyPrice, &s.BuyQuantity,
+			&s.SellPrice, &s.SellQuantity, &s.CreatedAt, &s.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("StrategyRepo - GetAll - Scan: %w", err)
+		}
+		strategies = append(strategies, &s)
+	}
+	return strategies, nil
+}
+
+func (r *StrategyRepo) GetAllUserTokens(ctx context.Context) ([]*entity.UserToken, error) {
+	sql, args, err := r.Builder.
+		Select("user_id", "tinkoff_token").
+		From("user_tokens").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetAllUserTokens - Build: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetAllUserTokens - Query: %w", err)
+	}
+	defer rows.Close()
+
+	var tokens []*entity.UserToken
+	for rows.Next() {
+		var t entity.UserToken
+		err := rows.Scan(
+			&t.UserID,
+			&t.TinkoffToken,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("StrategyRepo - GetAllUserTokens - Scan: %w", err)
+		}
+		tokens = append(tokens, &t)
+	}
+	return tokens, nil
 }

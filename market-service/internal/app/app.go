@@ -2,16 +2,18 @@ package app
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"gitverse.ru/volatex/backend/market-service/config"
 	"gitverse.ru/volatex/backend/market-service/internal/controller/http"
 	"gitverse.ru/volatex/backend/market-service/internal/repo/persistent"
+	"gitverse.ru/volatex/backend/market-service/internal/usecase/cron"
 	"gitverse.ru/volatex/backend/market-service/internal/usecase/strategy"
 	"gitverse.ru/volatex/backend/market-service/pkg/httpserver"
 	"gitverse.ru/volatex/backend/market-service/pkg/logger"
 	"gitverse.ru/volatex/backend/market-service/pkg/postgres"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 // Run инициализирует зависимости и запускает HTTP-сервер.
@@ -29,6 +31,18 @@ func Run(cfg *config.Config) {
 	// Репозиторий и usecase
 	strategyRepo := persistent.NewStrategyRepo(pg)
 	marketUseCase := strategy.New(strategyRepo)
+
+	// Инициализация и запуск CRON job для печати стратегий
+	printStrategiesUseCase := cron.NewPrintStrategiesUseCase(strategyRepo)
+	printStrategiesJob := cron.NewPrintStrategiesJob(printStrategiesUseCase)
+	printStrategiesJob.Start()
+	defer printStrategiesJob.Stop()
+
+	// Инициализация и запуск CRON job для проверки цен
+	checkPricesUseCase := cron.NewCheckPricesUseCase(strategyRepo, l)
+	checkPricesJob := cron.NewCheckPricesJob(checkPricesUseCase)
+	checkPricesJob.Start()
+	defer checkPricesJob.Stop()
 
 	// HTTP-сервер
 	httpServer := httpserver.New(httpserver.Port(cfg.HTTP.Port), httpserver.Prefork(cfg.HTTP.UsePreforkMode))

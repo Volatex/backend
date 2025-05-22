@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/argon2"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/argon2"
 
 	"gitverse.ru/volatex/backend/internal/entity"
 	"gitverse.ru/volatex/backend/internal/repo"
@@ -16,6 +17,7 @@ import (
 
 var (
 	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrIncorrectPassword  = errors.New("password incorrect")
 )
 
 type UseCase struct {
@@ -77,7 +79,7 @@ func (uc *UseCase) SignIn(ctx context.Context, email, password string) (string, 
 	}
 
 	if !verifyPassword(user.Password, password) {
-		return "", ErrInvalidCredentials
+		return "", ErrIncorrectPassword
 	}
 
 	// Генерация JWT

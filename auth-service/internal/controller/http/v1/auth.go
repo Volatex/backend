@@ -140,11 +140,14 @@ func (r *Auth) signIn(ctx *fiber.Ctx) error {
 	if err != nil {
 		r.l.Error(err, "http - v1 - signIn")
 
-		if err.Error() == "invalid email or password" {
+		switch err.Error() {
+		case "invalid email or password":
 			return errorResponse(ctx, http.StatusUnauthorized, err.Error())
+		case "password incorrect":
+			return errorResponse(ctx, http.StatusUnauthorized, err.Error())
+		default:
+			return errorResponse(ctx, http.StatusInternalServerError, "sign in failed")
 		}
-
-		return errorResponse(ctx, http.StatusInternalServerError, "sign in failed")
 	}
 
 	return ctx.JSON(response.Token{Token: token})
