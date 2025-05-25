@@ -15,10 +15,10 @@ class MathServiceImpl(volatilityService: VolatilityService[IO]) extends MathServ
     volatilityService.calculateVolatility(returns).map {
       case Right(volatility) =>
         logger.info(s"Successfully calculated volatility: $volatility")
-        VolatilityResponse(volatility)
+        VolatilityResponse(volatility = volatility)
       case Left(error) =>
         logger.error(s"Error calculating volatility: $error")
-        throw new io.grpc.StatusRuntimeException(io.grpc.Status.INVALID_ARGUMENT.withDescription(error))
+        throw new io.grpc.StatusRuntimeException(io.grpc.Status.INVALID_ARGUMENT.withDescription(error.toString))
     }.unsafeToFuture()
   }
 }

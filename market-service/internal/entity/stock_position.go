@@ -1,6 +1,11 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type UserTariff string
 
@@ -9,6 +14,17 @@ const (
 	TariffTrader   UserTariff = "trader"   // 0.04% commission
 	TariffPremium  UserTariff = "premium"  // 0% commission
 )
+
+// Volatility represents annualized volatility as a percentage
+type Volatility float64
+
+// MarshalJSON implements custom JSON marshaling for Volatility
+func (v Volatility) MarshalJSON() ([]byte, error) {
+	// Convert to percentage and round to 2 decimal places
+	percentage := float64(v) * 100
+	formatted := fmt.Sprintf("%.2f%%", percentage)
+	return json.Marshal(formatted)
+}
 
 type StockPosition struct {
 	UserID       uuid.UUID  `json:"user_id"`
@@ -20,6 +36,7 @@ type StockPosition struct {
 	TotalValue   float64    `json:"total_value"`
 	Commission   float64    `json:"commission"`
 	Tariff       UserTariff `json:"tariff"`
+	Volatility   Volatility `json:"volatility"`
 }
 
 // CalculateCommission calculates the commission for selling the entire position

@@ -3,6 +3,7 @@ package external
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/tinkoff/invest-api-go-sdk/investgo"
 	investapi "github.com/tinkoff/invest-api-go-sdk/proto"
@@ -20,6 +21,7 @@ type TinkoffClient interface {
 	GetUserAccount(ctx context.Context) (string, error)
 	GetPortfolio(ctx context.Context, accountID string) (*investgo.PortfolioResponse, error)
 	GetInstrumentByFigi(ctx context.Context, figi string) (*investapi.Instrument, error)
+	GetHistoricalPrices(ctx context.Context, figi string, from, to time.Time) ([]float64, error)
 }
 
 type tinkoffSDKWrapper struct {
@@ -398,6 +400,68 @@ func (t *tinkoffSDKWrapper) GetInstrumentByFigi(ctx context.Context, figi string
 	}
 
 	return instrument, nil
+}
+
+func (t *tinkoffSDKWrapper) GetHistoricalPrices(ctx context.Context, figi string, from, to time.Time) ([]float64, error) {
+	if t.client == nil {
+		return nil, fmt.Errorf("Tinkoff client is not initialized")
+	}
+
+	marketDataService := t.client.NewMarketDataServiceClient()
+	if marketDataService == nil {
+		return nil, fmt.Errorf("Market data service is not initialized")
+	}
+
+	// Get historical candles
+	candles, err := marketDataService.GetCandles(figi, investapi.CandleInterval_CANDLE_INTERVAL_DAY, from, to)
+	if err != nil {
+		t.logger.Error(fmt.Errorf("error getting historical candles: %w", err), "Error getting historical candles", "figi", figi)
+		return nil, err
+	}
+
+	t.logger.Info("Received historical candles",
+		"figi", figi,
+		"total_candles", len(candles.GetCandles()),
+		"from", from.Format("2006-01-02"),
+		"to", to.Format("2006-01-02"))
+
+	// Extract closing prices, skipping weekends and holidays
+	prices := make([]float64, 0, len(candles.GetCandles()))
+	var lastDate time.Time
+	for _, candle := range candles.GetCandles() {
+		if candle.Close == nil {
+			t.logger.Warn("Candle close price is nil", "figi", figi, "time", candle.Time)
+			continue
+		}
+
+		// Skip if this is a duplicate of the last date
+		currentDate := candle.Time.AsTime().Truncate(24 * time.Hour)
+		if !lastDate.IsZero() && currentDate.Equal(lastDate) {
+			continue
+		}
+
+		// Skip weekends
+		weekday := currentDate.Weekday()
+		if weekday == time.Saturday || weekday == time.Sunday {
+			continue
+		}
+
+		price := float64(candle.Close.Units) + float64(candle.Close.Nano)/1e9
+		prices = append(prices, price)
+		lastDate = currentDate
+	}
+
+	t.logger.Info("Processed historical prices",
+		"figi", figi,
+		"total_prices", len(prices),
+		"first_price", prices[0],
+		"last_price", prices[len(prices)-1])
+
+	if len(prices) == 0 {
+		return nil, fmt.Errorf("no historical prices found for FIGI: %s", figi)
+	}
+
+	return prices, nil
 }
 
 type sdkLogger struct {

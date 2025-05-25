@@ -238,6 +238,9 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                },
+                "volatility": {
+                    "type": "number"
                 }
             }
         },

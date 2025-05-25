@@ -15,6 +15,7 @@ type (
 		Swagger Swagger
 		GRPC    GRPC
 		JWT     JWT
+		Math    Math
 	}
 
 	App struct {
@@ -43,10 +44,15 @@ type (
 	GRPC struct {
 		NotificationAddr string `env:"GRPC_NOTIFICATION_ADDR,required"`
 	}
+
 	JWT struct {
 		Secret     string `env:"JWT_SECRET,required"`
 		TTL        string `env:"JWT_TTL,required"`
 		RefreshTTL string `env:"REFRESH_TTL,required"`
+	}
+
+	Math struct {
+		Endpoint string `env:"MATH_SERVICE_ENDPOINT" envDefault:"math_service:50055"`
 	}
 )
 

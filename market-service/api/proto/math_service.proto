@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package mathservice;
+
+option go_package = "gitverse.ru/volatex/backend/market-service/api/proto";
+
+service MathService {
+  rpc CalculateVolatility (VolatilityRequest) returns (VolatilityResponse) {}
+}
+
+message VolatilityRequest {
+  repeated double returns = 1;
+}
+
+message VolatilityResponse {
+  double volatility = 1;
+} 

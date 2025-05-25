@@ -11,6 +11,7 @@ import (
 	"gitverse.ru/volatex/backend/market-service/internal/repo/persistent"
 	"gitverse.ru/volatex/backend/market-service/internal/usecase/cron"
 	"gitverse.ru/volatex/backend/market-service/internal/usecase/strategy"
+	"gitverse.ru/volatex/backend/market-service/pkg/external"
 	"gitverse.ru/volatex/backend/market-service/pkg/httpserver"
 	"gitverse.ru/volatex/backend/market-service/pkg/logger"
 	"gitverse.ru/volatex/backend/market-service/pkg/postgres"
@@ -28,9 +29,19 @@ func Run(cfg *config.Config) {
 	}
 	defer pg.Close()
 
-	// Репозиторий и usecase
+	// Репозиторий
 	strategyRepo := persistent.NewStrategyRepo(pg)
-	marketUseCase := strategy.New(strategyRepo, l)
+
+	// Math service client
+	mathClient, err := external.NewMathServiceClient(external.MathServiceConfig{
+		Endpoint: cfg.Math.Endpoint,
+	}, l)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - mathService.New: %w", err))
+	}
+
+	// Usecase
+	marketUseCase := strategy.New(strategyRepo, l, nil, mathClient)
 
 	// Инициализация и запуск CRON job для печати стратегий
 	printStrategiesUseCase := cron.NewPrintStrategiesUseCase(strategyRepo)

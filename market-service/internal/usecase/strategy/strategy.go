@@ -3,6 +3,8 @@ package strategy
 import (
 	"context"
 	"fmt"
+	"math"
+	"time"
 
 	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
@@ -12,14 +14,18 @@ import (
 )
 
 type UseCase struct {
-	repo   repo.StrategyRepo
-	logger logger.Interface
+	repo          repo.StrategyRepo
+	logger        logger.Interface
+	tinkoffClient external.TinkoffClient
+	mathClient    external.MathServiceClient
 }
 
-func New(repo repo.StrategyRepo, logger logger.Interface) *UseCase {
+func New(repo repo.StrategyRepo, logger logger.Interface, tinkoffClient external.TinkoffClient, mathClient external.MathServiceClient) *UseCase {
 	return &UseCase{
-		repo:   repo,
-		logger: logger,
+		repo:          repo,
+		logger:        logger,
+		tinkoffClient: tinkoffClient,
+		mathClient:    mathClient,
 	}
 }
 
@@ -130,10 +136,91 @@ func (uc *UseCase) GetUserStockPositions(ctx context.Context, userID uuid.UUID) 
 			Tariff:       userTariff,
 		}
 
+		// Calculate volatility using historical prices
+		// Get prices for the last 12 months
+		to := time.Now()
+		from := to.AddDate(-1, 0, 0) // 12 months ago
+		prices, err := client.GetHistoricalPrices(ctx, pos.Figi, from, to)
+		if err != nil {
+			uc.logger.Warn("Failed to get historical prices for volatility calculation",
+				"user_id", userID,
+				"figi", pos.Figi,
+				"error", err)
+			// Continue without volatility
+			position.CalculateCommission()
+			positions = append(positions, position)
+			continue
+		}
+
+		// Calculate monthly returns
+		if len(prices) < 2 {
+			uc.logger.Warn("Not enough historical prices for volatility calculation",
+				"user_id", userID,
+				"figi", pos.Figi,
+				"prices_count", len(prices))
+			position.CalculateCommission()
+			positions = append(positions, position)
+			continue
+		}
+
+		// Calculate returns
+		returns := make([]float64, len(prices)-1)
+		for i := 1; i < len(prices); i++ {
+			if prices[i-1] == 0 {
+				uc.logger.Warn("Found zero price in historical data",
+					"user_id", userID,
+					"figi", pos.Figi,
+					"index", i-1)
+				continue
+			}
+			returns[i-1] = (prices[i] - prices[i-1]) / prices[i-1]
+		}
+
+		// Log some statistics about returns
+		if len(returns) > 0 {
+			var sum float64
+			var count int
+			for _, r := range returns {
+				if !math.IsNaN(r) && !math.IsInf(r, 0) {
+					sum += r
+					count++
+				}
+			}
+			if count > 0 {
+				uc.logger.Info("Returns statistics",
+					"user_id", userID,
+					"figi", pos.Figi,
+					"total_returns", len(returns),
+					"valid_returns", count,
+					"avg_return", sum/float64(count))
+			}
+		}
+
+		// Calculate volatility using math service
+		volatility, err := uc.mathClient.CalculateVolatility(ctx, returns)
+		if err != nil {
+			uc.logger.Warn("Failed to calculate volatility",
+				"user_id", userID,
+				"figi", pos.Figi,
+				"error", err,
+				"returns_count", len(returns))
+			// Set volatility to 0 instead of NaN
+			position.Volatility = entity.Volatility(0)
+			position.CalculateCommission()
+			positions = append(positions, position)
+			continue
+		}
+
+		position.Volatility = entity.Volatility(volatility)
 		position.CalculateCommission()
 		positions = append(positions, position)
 
-		uc.logger.Info("Position processed", "user_id", userID, "figi", pos.Figi, "quantity", quantity, "price", price)
+		uc.logger.Info("Position processed",
+			"user_id", userID,
+			"figi", pos.Figi,
+			"quantity", quantity,
+			"price", price,
+			"volatility", volatility)
 	}
 
 	return positions, nil

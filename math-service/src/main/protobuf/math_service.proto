@@ -10,7 +10,7 @@ service MathService {
 }
 
 message VolatilityRequest {
-  repeated float returns = 1;
+  repeated double returns = 1;
 }
 
 message VolatilityResponse {
