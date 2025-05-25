@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gitverse.ru/volatex/backend/market-service/internal/controller/http/v1/request"
 	"gitverse.ru/volatex/backend/market-service/internal/entity"
-	"net/http"
 )
 
 // @Summary     Save strategy
@@ -143,4 +144,37 @@ func (r *Market) getUserStrategies(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusOK).JSON(strategies)
+}
+
+// @Summary     Get user's stock positions
+// @Description Get all stock positions for the authenticated user with current prices and commission calculations
+// @ID          get-user-positions
+// @Tags        market
+// @Produce     json
+// @Success     200 {array} entity.StockPosition
+// @Failure     401 {object} response.Error
+// @Failure     500 {object} response.Error
+// @Router      /market/positions [get]
+// @Security ApiKeyAuth
+func (r *Market) getUserPositions(ctx *fiber.Ctx) error {
+	userIDRaw := ctx.Locals("user_id")
+	userIDStr, ok := userIDRaw.(string)
+	if !ok || userIDStr == "" {
+		r.l.Error(nil, "http - v1 - getUserPositions - user_id missing or invalid")
+		return errorResponse(ctx, http.StatusUnauthorized, "unauthorized")
+	}
+
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		r.l.Error(err, "http - v1 - getUserPositions - invalid UUID")
+		return errorResponse(ctx, http.StatusBadRequest, "invalid user ID")
+	}
+
+	positions, err := r.u.GetUserStockPositions(ctx.UserContext(), userUUID)
+	if err != nil {
+		r.l.Error(err, "http - v1 - getUserPositions")
+		return errorResponse(ctx, http.StatusInternalServerError, "failed to fetch positions")
+	}
+
+	return ctx.Status(http.StatusOK).JSON(positions)
 }

@@ -1,5 +1,26 @@
 basePath: /v1
 definitions:
+  entity.StockPosition:
+    properties:
+      commission:
+        type: number
+      current_price:
+        type: number
+      figi:
+        type: string
+      name:
+        type: string
+      quantity:
+        type: integer
+      tariff:
+        $ref: '#/definitions/entity.UserTariff'
+      ticker:
+        type: string
+      total_value:
+        type: number
+      user_id:
+        type: string
+    type: object
   entity.Strategy:
     properties:
       buyPrice:
@@ -21,6 +42,20 @@ definitions:
       userID:
         type: string
     type: object
+  entity.UserTariff:
+    enum:
+    - investor
+    - trader
+    - premium
+    type: string
+    x-enum-comments:
+      TariffInvestor: 0.3% commission
+      TariffPremium: 0% commission
+      TariffTrader: 0.04% commission
+    x-enum-varnames:
+    - TariffInvestor
+    - TariffTrader
+    - TariffPremium
   request.SaveStrategy:
     properties:
       buy_price:
@@ -60,6 +95,33 @@ info:
   title: Market Service
   version: "1.0"
 paths:
+  /market/positions:
+    get:
+      description: Get all stock positions for the authenticated user with current
+        prices and commission calculations
+      operationId: get-user-positions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.StockPosition'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's stock positions
+      tags:
+      - market
   /strategy/add:
     post:
       consumes:

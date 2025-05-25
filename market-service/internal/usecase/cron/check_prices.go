@@ -70,6 +70,65 @@ func (uc *checkPricesUseCase) Execute(ctx context.Context) error {
 				"current_price", price,
 				"buy_price", strategy.BuyPrice,
 				"sell_price", strategy.SellPrice)
+
+			accountID, err := client.GetUserAccount(ctx)
+			if err != nil {
+				uc.logger.Error(err, "Failed to get user account",
+					"user_id", token.UserID)
+				continue
+			}
+
+			if price <= strategy.BuyPrice {
+				uc.logger.Info("Buy condition met, executing buy order",
+					"user_id", token.UserID,
+					"ticker", strategy.Figi,
+					"current_price", price,
+					"target_price", strategy.BuyPrice,
+					"quantity", strategy.BuyQuantity)
+
+				err = client.BuyAsset(ctx, strategy.Figi, int64(strategy.BuyQuantity), accountID)
+				if err != nil {
+					uc.logger.Error(err, "Failed to create buy order",
+						"user_id", token.UserID,
+						"ticker", strategy.Figi)
+					continue
+				}
+
+				uc.logger.Info("Buy order executed successfully",
+					"user_id", token.UserID,
+					"ticker", strategy.Figi,
+					"quantity", strategy.BuyQuantity,
+					"price", price)
+
+				// TODO: Обновить статус стратегии после успешной покупки
+				// Например, пометить стратегию как активную или обновить целевую цену продажи
+			}
+
+			if price >= strategy.SellPrice {
+				uc.logger.Info("Sell condition met, executing sell order",
+					"user_id", token.UserID,
+					"ticker", strategy.Figi,
+					"current_price", price,
+					"target_price", strategy.SellPrice,
+					"quantity", strategy.SellQuantity)
+
+				err = client.SellAsset(ctx, strategy.Figi, int64(strategy.SellQuantity), accountID)
+				if err != nil {
+					uc.logger.Error(err, "Failed to create sell order",
+						"user_id", token.UserID,
+						"ticker", strategy.Figi)
+					continue
+				}
+
+				uc.logger.Info("Sell order executed successfully",
+					"user_id", token.UserID,
+					"ticker", strategy.Figi,
+					"quantity", strategy.SellQuantity,
+					"price", price)
+
+				// TODO: Обновить статус стратегии после успешной продажи
+				// Например, пометить стратегию как завершенную или сбросить цены
+			}
 		}
 	}
 

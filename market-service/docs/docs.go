@@ -15,6 +15,47 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/market/positions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all stock positions for the authenticated user with current prices and commission calculations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "market"
+                ],
+                "summary": "Get user's stock positions",
+                "operationId": "get-user-positions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.StockPosition"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/strategy/add": {
             "post": {
                 "security": [
@@ -168,6 +209,38 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.StockPosition": {
+            "type": "object",
+            "properties": {
+                "commission": {
+                    "type": "number"
+                },
+                "current_price": {
+                    "type": "number"
+                },
+                "figi": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "tariff": {
+                    "$ref": "#/definitions/entity.UserTariff"
+                },
+                "ticker": {
+                    "type": "string"
+                },
+                "total_value": {
+                    "type": "number"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Strategy": {
             "type": "object",
             "properties": {
@@ -199,6 +272,24 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "entity.UserTariff": {
+            "type": "string",
+            "enum": [
+                "investor",
+                "trader",
+                "premium"
+            ],
+            "x-enum-comments": {
+                "TariffInvestor": "0.3% commission",
+                "TariffPremium": "0% commission",
+                "TariffTrader": "0.04% commission"
+            },
+            "x-enum-varnames": [
+                "TariffInvestor",
+                "TariffTrader",
+                "TariffPremium"
+            ]
         },
         "request.SaveStrategy": {
             "type": "object",

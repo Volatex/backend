@@ -145,3 +145,25 @@ func (r *StrategyRepo) GetAllUserTokens(ctx context.Context) ([]*entity.UserToke
 	}
 	return tokens, nil
 }
+
+func (r *StrategyRepo) GetUserToken(ctx context.Context, userID uuid.UUID) (*entity.UserToken, error) {
+	sql, args, err := r.Builder.
+		Select("user_id", "tinkoff_token").
+		From("user_tokens").
+		Where("user_id = ?", userID).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetUserToken - Build: %w", err)
+	}
+
+	var token entity.UserToken
+	err = r.Pool.QueryRow(ctx, sql, args...).Scan(
+		&token.UserID,
+		&token.TinkoffToken,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetUserToken - Scan: %w", err)
+	}
+
+	return &token, nil
+}

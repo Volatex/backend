@@ -30,7 +30,7 @@ func Run(cfg *config.Config) {
 
 	// Репозиторий и usecase
 	strategyRepo := persistent.NewStrategyRepo(pg)
-	marketUseCase := strategy.New(strategyRepo)
+	marketUseCase := strategy.New(strategyRepo, l)
 
 	// Инициализация и запуск CRON job для печати стратегий
 	printStrategiesUseCase := cron.NewPrintStrategiesUseCase(strategyRepo)
