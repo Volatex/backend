@@ -167,3 +167,47 @@ func (r *StrategyRepo) GetUserToken(ctx context.Context, userID uuid.UUID) (*ent
 
 	return &token, nil
 }
+
+func (r *StrategyRepo) GetByID(ctx context.Context, id int) (*entity.Strategy, error) {
+	sql, args, err := r.Builder.
+		Select("id", "user_id", "figi", "buy_price", "buy_quantity", "sell_price", "sell_quantity", "created_at", "updated_at").
+		From("user_strategies").
+		Where("id = ?", id).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetByID - Build: %w", err)
+	}
+
+	var s entity.Strategy
+	err = r.Pool.QueryRow(ctx, sql, args...).Scan(
+		&s.ID, &s.UserID, &s.Figi, &s.BuyPrice, &s.BuyQuantity,
+		&s.SellPrice, &s.SellQuantity, &s.CreatedAt, &s.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("StrategyRepo - GetByID - Scan: %w", err)
+	}
+
+	return &s, nil
+}
+
+func (r *StrategyRepo) Delete(ctx context.Context, id int) error {
+	sql, args, err := r.Builder.
+		Delete("user_strategies").
+		Where("id = ?", id).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("StrategyRepo - Delete - Build: %w", err)
+	}
+
+	result, err := r.Pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("StrategyRepo - Delete - Exec: %w", err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("StrategyRepo - Delete - Strategy not found")
+	}
+
+	return nil
+}

@@ -178,3 +178,52 @@ func (r *Market) getUserPositions(ctx *fiber.Ctx) error {
 
 	return ctx.Status(http.StatusOK).JSON(positions)
 }
+
+// @Summary Delete a strategy
+// @Description Delete a strategy by its ID. Only the owner can delete their strategy.
+// @Tags strategies
+// @Accept json
+// @Produce json
+// @Param id path int true "Strategy ID"
+// @Security ApiKeyAuth
+// @Success 204 "Strategy deleted successfully"
+// @Failure 400 {object} response.Error "Invalid request"
+// @Failure 401 {object} response.Error "Unauthorized"
+// @Failure 403 {object} response.Error "Forbidden - Strategy belongs to another user"
+// @Failure 404 {object} response.Error "Strategy not found"
+// @Failure 500 {object} response.Error "Internal server error"
+// @Router /strategy/{id} [delete]
+func (r *Market) deleteStrategy(ctx *fiber.Ctx) error {
+	userIDRaw := ctx.Locals("user_id")
+	userIDStr, ok := userIDRaw.(string)
+	if !ok || userIDStr == "" {
+		r.l.Error(nil, "http - v1 - deleteStrategy - user_id missing or invalid")
+		return errorResponse(ctx, http.StatusUnauthorized, "unauthorized")
+	}
+
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		r.l.Error(err, "http - v1 - deleteStrategy - invalid UUID")
+		return errorResponse(ctx, http.StatusBadRequest, "invalid user ID")
+	}
+
+	strategyID, err := ctx.ParamsInt("id")
+	if err != nil {
+		r.l.Error(err, "http - v1 - deleteStrategy - invalid strategy ID")
+		return errorResponse(ctx, http.StatusBadRequest, "invalid strategy ID")
+	}
+
+	if err := r.u.Delete(ctx.UserContext(), strategyID, userUUID); err != nil {
+		r.l.Error(err, "http - v1 - deleteStrategy")
+		switch {
+		case err.Error() == "strategy not found":
+			return errorResponse(ctx, http.StatusNotFound, err.Error())
+		case err.Error() == "failed to get strategy":
+			return errorResponse(ctx, http.StatusNotFound, "strategy not found")
+		default:
+			return errorResponse(ctx, http.StatusInternalServerError, "failed to delete strategy")
+		}
+	}
+
+	return ctx.SendStatus(http.StatusNoContent)
+}

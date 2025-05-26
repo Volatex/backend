@@ -225,3 +225,37 @@ func (uc *UseCase) GetUserStockPositions(ctx context.Context, userID uuid.UUID) 
 
 	return positions, nil
 }
+
+// Delete deletes a strategy by its ID, but only if it belongs to the specified user
+func (uc *UseCase) Delete(ctx context.Context, strategyID int, userID uuid.UUID) error {
+	// First get the strategy to verify ownership
+	strategy, err := uc.repo.GetByID(ctx, strategyID)
+	if err != nil {
+		uc.logger.Error(err, "Failed to get strategy for deletion",
+			"strategy_id", strategyID,
+			"user_id", userID)
+		return fmt.Errorf("failed to get strategy: %w", err)
+	}
+
+	// Verify that the strategy belongs to the user
+	if strategy.UserID != userID {
+		uc.logger.Warn("Attempt to delete strategy of another user",
+			"strategy_id", strategyID,
+			"user_id", userID,
+			"strategy_user_id", strategy.UserID)
+		return fmt.Errorf("strategy not found")
+	}
+
+	// Delete the strategy
+	if err := uc.repo.Delete(ctx, strategyID); err != nil {
+		uc.logger.Error(err, "Failed to delete strategy",
+			"strategy_id", strategyID,
+			"user_id", userID)
+		return fmt.Errorf("failed to delete strategy: %w", err)
+	}
+
+	uc.logger.Info("Strategy deleted successfully",
+		"strategy_id", strategyID,
+		"user_id", userID)
+	return nil
+}

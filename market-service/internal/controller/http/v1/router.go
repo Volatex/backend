@@ -15,6 +15,7 @@ func NewMarketRoutes(apiV1Group fiber.Router, u usecase.Market, l logger.Interfa
 		strategyGroup.Post("/add", r.saveStrategy)
 		strategyGroup.Post("/add_token", r.saveUserToken)
 		strategyGroup.Get("/get_strategies", r.getUserStrategies)
+		strategyGroup.Delete("/:id", r.deleteStrategy)
 	}
 
 	marketGroup := apiV1Group.Group("/market")
